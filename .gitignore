@@ -40,4 +40,8 @@ next-env.d.ts
 
 # prisma
 /prisma/migrations
+*.db
+*.db-journal
+dev.db
+prisma/dev.db
 
