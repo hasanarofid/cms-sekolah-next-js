@@ -1,11 +1,13 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import dynamic from 'next/dynamic'
+import { slugify } from '@/lib/utils'
+import { Upload, X, Loader2 } from 'lucide-react'
 
 const ReactQuill = dynamic(() => import('react-quill'), { ssr: false })
 import 'react-quill/dist/quill.snow.css'
@@ -48,6 +50,10 @@ export function PostForm({ post, menus }: PostFormProps) {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
+  const [uploading, setUploading] = useState(false)
+  const [previewImage, setPreviewImage] = useState<string | null>(
+    post?.featuredImage || null
+  )
 
   const {
     register,
@@ -85,6 +91,69 @@ export function PostForm({ post, menus }: PostFormProps) {
 
   const content = watch('content')
   const contentEn = watch('contentEn')
+  const title = watch('title')
+  const slug = watch('slug')
+
+  // Auto-generate slug from title
+  useEffect(() => {
+    if (title) {
+      const generatedSlug = slugify(title)
+      // Auto-generate on create
+      if (!post) {
+        setValue('slug', generatedSlug, { shouldValidate: true })
+      } else {
+        // On edit: also auto-update slug if title changes
+        setValue('slug', generatedSlug, { shouldValidate: true })
+      }
+    }
+  }, [title, post, setValue])
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    if (!file.type.startsWith('image/')) {
+      setError('File harus berupa gambar')
+      return
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      setError('Ukuran file maksimal 5MB')
+      return
+    }
+
+    setUploading(true)
+    setError('')
+
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+      formData.append('type', 'general') // Upload to general folder
+
+      const response = await fetch('/api/admin/upload', {
+        method: 'POST',
+        body: formData,
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Gagal mengupload gambar')
+      }
+
+      const data = await response.json()
+      setValue('featuredImage', data.url, { shouldValidate: true })
+      setPreviewImage(data.url)
+    } catch (err: any) {
+      setError(err.message || 'Gagal mengupload gambar')
+    } finally {
+      setUploading(false)
+    }
+  }
+
+  const handleRemoveImage = () => {
+    setValue('featuredImage', '', { shouldValidate: true })
+    setPreviewImage(null)
+  }
 
   const onSubmit = async (data: PostFormData) => {
     setIsLoading(true)
@@ -163,21 +232,72 @@ export function PostForm({ post, menus }: PostFormProps) {
         <input
           {...register('slug')}
           type="text"
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+          readOnly
+          className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 cursor-not-allowed"
         />
         {errors.slug && (
           <p className="mt-1 text-sm text-red-600">{errors.slug.message}</p>
         )}
+        <p className="mt-1 text-xs text-gray-500">
+          Slug di-generate otomatis dari judul (ID). Field ini readonly dan akan ter-update saat judul berubah.
+        </p>
       </div>
 
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
-          Featured Image URL
+          Featured Image
         </label>
+        
+        {previewImage ? (
+          <div className="relative">
+            <img
+              src={previewImage}
+              alt="Featured Image Preview"
+              className="h-48 w-full object-cover rounded-lg border border-gray-300"
+            />
+            <button
+              type="button"
+              onClick={handleRemoveImage}
+              className="absolute top-2 right-2 bg-red-600 text-white p-2 rounded-full hover:bg-red-700 transition-colors"
+            >
+              <X size={18} />
+            </button>
+          </div>
+        ) : (
+          <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleFileUpload}
+              disabled={uploading}
+              className="hidden"
+              id="featured-image-upload"
+            />
+            <label
+              htmlFor="featured-image-upload"
+              className={`cursor-pointer flex flex-col items-center justify-center ${
+                uploading ? 'opacity-50 cursor-not-allowed' : ''
+              }`}
+            >
+              {uploading ? (
+                <>
+                  <Loader2 className="animate-spin text-primary-600 mb-2" size={32} />
+                  <span className="text-gray-600">Mengupload...</span>
+                </>
+              ) : (
+                <>
+                  <Upload className="text-gray-400 mb-2" size={32} />
+                  <span className="text-gray-600 mb-1">Klik untuk upload gambar</span>
+                  <span className="text-sm text-gray-500">PNG, JPG, GIF maksimal 5MB</span>
+                </>
+              )}
+            </label>
+          </div>
+        )}
+        
         <input
           {...register('featuredImage')}
-          type="url"
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+          type="hidden"
         />
       </div>
 

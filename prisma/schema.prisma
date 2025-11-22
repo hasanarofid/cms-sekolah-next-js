@@ -176,3 +176,28 @@ model FAQ {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 }
+
+model Figure {
+  id            String    @id @default(cuid())
+  name          String
+  nameEn        String?
+  position      String    // Role/position (e.g., "ADVISORY BOARD AL AZHAR IIBS")
+  positionEn    String?
+  image         String    // Photo of the figure
+  order         Int       @default(0)
+  isActive      Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model Partnership {
+  id            String    @id @default(cuid())
+  name          String
+  nameEn        String?
+  logo          String    // Logo URL
+  category      String    // 'international', 'health', 'student-escort'
+  order         Int       @default(0)
+  isActive      Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}

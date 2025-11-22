@@ -8,7 +8,7 @@ import { z } from 'zod'
 import { Upload, X, Loader2 } from 'lucide-react'
 
 const sectionSchema = z.object({
-  type: z.enum(['motto', 'video-profile', 'admission', 'feature', 'split-screen'], {
+  type: z.enum(['motto', 'video-profile', 'admission', 'feature', 'split-screen', 'masjid-al-fatih', 'university-map', 'global-stage'], {
     errorMap: () => ({ message: 'Pilih tipe section' })
   }),
   title: z.string().optional(),
@@ -51,7 +51,7 @@ interface HomeSectionFormProps {
     order: number
     isActive: boolean
   }
-  defaultType?: 'motto' | 'video-profile' | 'admission' | 'feature' | 'split-screen'
+  defaultType?: 'motto' | 'video-profile' | 'admission' | 'feature' | 'split-screen' | 'masjid-al-fatih' | 'university-map' | 'global-stage'
 }
 
 export function HomeSectionForm({ section, defaultType }: HomeSectionFormProps) {
@@ -76,7 +76,7 @@ export function HomeSectionForm({ section, defaultType }: HomeSectionFormProps) 
     resolver: zodResolver(sectionSchema),
         defaultValues: section
       ? {
-          type: section.type as 'motto' | 'video-profile' | 'admission' | 'feature' | 'split-screen',
+          type: section.type as 'motto' | 'video-profile' | 'admission' | 'feature' | 'split-screen' | 'masjid-al-fatih' | 'university-map' | 'global-stage',
           title: section.title || '',
           titleEn: section.titleEn || '',
           subtitle: section.subtitle || '',
@@ -239,9 +239,16 @@ export function HomeSectionForm({ section, defaultType }: HomeSectionFormProps) 
       }
 
       // Redirect based on section type
-      const redirectPath = data.type === 'split-screen' 
-        ? '/admin/split-screens' 
-        : '/admin/home-sections'
+      let redirectPath = '/admin/home-sections'
+      if (data.type === 'split-screen') {
+        redirectPath = '/admin/split-screens'
+      } else if (data.type === 'masjid-al-fatih') {
+        redirectPath = '/admin/masjid-al-fatih'
+      } else if (data.type === 'university-map') {
+        redirectPath = '/admin/university-maps'
+      } else if (data.type === 'global-stage') {
+        redirectPath = '/admin/global-stages'
+      }
       router.push(redirectPath)
       router.refresh()
     } catch (err: any) {
@@ -285,6 +292,9 @@ export function HomeSectionForm({ section, defaultType }: HomeSectionFormProps) 
           <option value="video-profile">Video Profile</option>
           <option value="admission">Admission (Penerimaan)</option>
           <option value="split-screen">Split Screen (Yellow Background)</option>
+              <option value="masjid-al-fatih">Masjid AL FATIH</option>
+              <option value="university-map">University Map (Peta Universitas)</option>
+          <option value="global-stage">Global Stage (International Program)</option>
           <option value="feature">Feature</option>
         </select>
         {errors.type && (
@@ -295,13 +305,17 @@ export function HomeSectionForm({ section, defaultType }: HomeSectionFormProps) 
       <div className="grid grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Title (ID)
+            Title (ID) {sectionType === 'masjid-al-fatih' && '*'}
           </label>
           <input
             {...register('title')}
             type="text"
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            placeholder={sectionType === 'masjid-al-fatih' ? 'Masjid AL FATIH' : ''}
           />
+          {sectionType === 'masjid-al-fatih' && (
+            <p className="mt-1 text-xs text-gray-500">Title yang ditampilkan di panel kanan (contoh: Masjid AL FATIH)</p>
+          )}
         </div>
 
         <div>
@@ -312,58 +326,73 @@ export function HomeSectionForm({ section, defaultType }: HomeSectionFormProps) 
             {...register('titleEn')}
             type="text"
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            placeholder={sectionType === 'masjid-al-fatih' ? 'Al-Fatih Mosque' : ''}
           />
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Subtitle (ID)
-          </label>
-          <input
-            {...register('subtitle')}
-            type="text"
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-          />
-        </div>
+      {/* Subtitle - Show for global-stage, hide for university-map */}
+      {sectionType !== 'university-map' && (
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Subtitle / Quote (ID) {sectionType === 'masjid-al-fatih' && '*'}
+            </label>
+            <input
+              {...register('subtitle')}
+              type="text"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              placeholder={sectionType === 'masjid-al-fatih' ? 'Shaping Future Leaders with Islamic Values' : ''}
+            />
+            {sectionType === 'masjid-al-fatih' && (
+              <p className="mt-1 text-xs text-gray-500">Quote yang ditampilkan di atas section (contoh: "Shaping Future Leaders with Islamic Values")</p>
+            )}
+            {sectionType === 'global-stage' && (
+              <p className="mt-1 text-xs text-gray-500">Quote yang ditampilkan di atas section (contoh: "Empowering Success on a Global Stage")</p>
+            )}
+          </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Subtitle (EN)
-          </label>
-          <input
-            {...register('subtitleEn')}
-            type="text"
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-          />
-        </div>
-      </div>
-
-      {(sectionType === 'admission' || sectionType === 'feature' || sectionType === 'split-screen') && (
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Content (ID)
-          </label>
-          <textarea
-            {...register('content')}
-            rows={4}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-            placeholder="Deskripsi atau konten section"
-          />
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Subtitle / Quote (EN)
+            </label>
+            <input
+              {...register('subtitleEn')}
+              type="text"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              placeholder={sectionType === 'masjid-al-fatih' ? 'Shaping Future Leaders with Islamic Values' : ''}
+            />
+          </div>
         </div>
       )}
 
-      {(sectionType === 'admission' || sectionType === 'feature' || sectionType === 'split-screen') && (
+      {(sectionType === 'admission' || sectionType === 'feature' || sectionType === 'split-screen' || sectionType === 'masjid-al-fatih') && (
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Content (EN)
+            Content / Deskripsi (ID) {sectionType === 'masjid-al-fatih' && '*'}
+          </label>
+          <textarea
+            {...register('content')}
+            rows={sectionType === 'masjid-al-fatih' ? 8 : 4}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            placeholder={sectionType === 'masjid-al-fatih' ? "Untuk menciptakan Generasi yang berbeda, maka perlu persiapan dan suasana baru yang spesial..." : "Deskripsi atau konten section"}
+          />
+          {sectionType === 'masjid-al-fatih' && (
+            <p className="mt-1 text-xs text-gray-500">Text yang akan ditampilkan di panel kanan (bisa HTML)</p>
+          )}
+        </div>
+      )}
+
+      {(sectionType === 'admission' || sectionType === 'feature' || sectionType === 'split-screen' || sectionType === 'masjid-al-fatih') && (
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Content / Deskripsi (EN)
           </label>
           <textarea
             {...register('contentEn')}
-            rows={4}
+            rows={sectionType === 'masjid-al-fatih' ? 8 : 4}
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-            placeholder="Description or content (English)"
+            placeholder={sectionType === 'masjid-al-fatih' ? "To create a different Generation, special preparation and a new atmosphere are needed..." : "Description or content (English)"}
           />
         </div>
       )}
@@ -383,11 +412,22 @@ export function HomeSectionForm({ section, defaultType }: HomeSectionFormProps) 
       )}
 
       {/* Single Image Upload */}
-      {(sectionType === 'motto' || sectionType === 'video-profile' || sectionType === 'admission' || sectionType === 'split-screen') && (
+      {(sectionType === 'motto' || sectionType === 'video-profile' || sectionType === 'admission' || sectionType === 'split-screen' || sectionType === 'masjid-al-fatih' || sectionType === 'university-map' || sectionType === 'global-stage') && (
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Gambar Utama
+            Gambar Utama 
+            {sectionType === 'masjid-al-fatih' && ' (Interior Masjid - Kiri)'}
+            {sectionType === 'university-map' && ' (Peta Universitas)'}
           </label>
+          {sectionType === 'masjid-al-fatih' && (
+            <p className="mb-2 text-xs text-gray-500">Gambar interior masjid yang ditampilkan di panel kiri</p>
+          )}
+          {sectionType === 'university-map' && (
+            <p className="mb-2 text-xs text-gray-500">Gambar peta dunia dengan logo universitas (contoh: infographic peta universitas)</p>
+          )}
+          {sectionType === 'global-stage' && (
+            <p className="mb-2 text-xs text-gray-500">Gambar untuk panel kanan (contoh: foto grup di gedung bersejarah seperti Hagia Sophia)</p>
+          )}
           
           {previewImage ? (
             <div className="relative">
@@ -440,6 +480,86 @@ export function HomeSectionForm({ section, defaultType }: HomeSectionFormProps) 
             {...register('image')}
             type="hidden"
           />
+        </div>
+      )}
+
+      {/* Background Image for Masjid AL FATIH (right side) */}
+      {sectionType === 'masjid-al-fatih' && (
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Background Image Kanan (Gambar Gedung Subtle)
+          </label>
+          <p className="mb-2 text-xs text-gray-500">Gambar gedung yang akan digunakan sebagai background subtle di panel kanan</p>
+          
+          {previewImages.length > 0 && previewImages[0] ? (
+            <div className="relative">
+              <img
+                src={previewImages[0]}
+                alt="Background Preview"
+                className="h-48 w-full object-cover rounded-lg border border-gray-300"
+              />
+              <button
+                type="button"
+                onClick={() => handleRemoveMultipleImage(0)}
+                className="absolute top-2 right-2 bg-red-600 text-white p-2 rounded-full hover:bg-red-700 transition-colors"
+              >
+                <X size={18} />
+              </button>
+            </div>
+          ) : (
+            <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => {
+                  const file = e.target.files?.[0]
+                  if (file) {
+                    const formData = new FormData()
+                    formData.append('file', file)
+                    formData.append('type', 'home-sections')
+                    setUploading(true)
+                    fetch('/api/admin/upload', {
+                      method: 'POST',
+                      body: formData,
+                    })
+                      .then(res => res.json())
+                      .then(data => {
+                        const currentImages = watch('images') || []
+                        setValue('images', [data.url], { shouldValidate: true })
+                        setPreviewImages([data.url])
+                        setUploading(false)
+                      })
+                      .catch(err => {
+                        setError('Gagal mengupload gambar')
+                        setUploading(false)
+                      })
+                  }
+                }}
+                disabled={uploading}
+                className="hidden"
+                id="bg-image-upload"
+              />
+              <label
+                htmlFor="bg-image-upload"
+                className={`cursor-pointer flex flex-col items-center justify-center ${
+                  uploading ? 'opacity-50 cursor-not-allowed' : ''
+                }`}
+              >
+                {uploading ? (
+                  <>
+                    <Loader2 className="animate-spin text-primary-600 mb-2" size={32} />
+                    <span className="text-gray-600">Mengupload...</span>
+                  </>
+                ) : (
+                  <>
+                    <Upload className="text-gray-400 mb-2" size={32} />
+                    <span className="text-gray-600 mb-1">Klik untuk upload background image</span>
+                    <span className="text-sm text-gray-500">PNG, JPG, GIF maksimal 5MB</span>
+                  </>
+                )}
+              </label>
+            </div>
+          )}
         </div>
       )}
 
@@ -509,49 +629,54 @@ export function HomeSectionForm({ section, defaultType }: HomeSectionFormProps) 
         </div>
       )}
 
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Button Text (ID)
-          </label>
-          <input
-            {...register('buttonText')}
-            type="text"
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-            placeholder="Daftar Sekarang"
-          />
-        </div>
+      {/* Button Fields - Show for global-stage, hide for university-map */}
+      {(sectionType !== 'university-map' && sectionType !== 'masjid-al-fatih') && (
+        <>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Button Text (ID)
+              </label>
+              <input
+                {...register('buttonText')}
+                type="text"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                placeholder="Daftar Sekarang"
+              />
+            </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Button Text (EN)
-          </label>
-          <input
-            {...register('buttonTextEn')}
-            type="text"
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-            placeholder="Register Now"
-          />
-        </div>
-      </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Button Text (EN)
+              </label>
+              <input
+                {...register('buttonTextEn')}
+                type="text"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                placeholder="Register Now"
+              />
+            </div>
+          </div>
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Button URL
-        </label>
-        <input
-          {...register('buttonUrl')}
-          type="text"
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-          placeholder="/pendaftaran atau https://example.com"
-        />
-        <p className="mt-1 text-sm text-gray-500">
-          Gunakan path relatif (contoh: /pendaftaran) atau URL lengkap (contoh: https://example.com)
-        </p>
-        {errors.buttonUrl && (
-          <p className="mt-1 text-sm text-red-600">{errors.buttonUrl.message}</p>
-        )}
-      </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Button URL
+            </label>
+            <input
+              {...register('buttonUrl')}
+              type="text"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              placeholder="/pendaftaran atau https://example.com"
+            />
+            <p className="mt-1 text-sm text-gray-500">
+              Gunakan path relatif (contoh: /pendaftaran) atau URL lengkap (contoh: https://example.com)
+            </p>
+            {errors.buttonUrl && (
+              <p className="mt-1 text-sm text-red-600">{errors.buttonUrl.message}</p>
+            )}
+          </div>
+        </>
+      )}
 
       <div className="grid grid-cols-2 gap-4">
         <div>

@@ -55,6 +55,31 @@ const menuItems: MenuItem[] = [
         href: '/admin/faqs',
         icon: <Layout size={18} />,
       },
+      {
+        title: 'Masjid AL FATIH',
+        href: '/admin/masjid-al-fatih',
+        icon: <Layout size={18} />,
+      },
+      {
+        title: 'University Map',
+        href: '/admin/university-maps',
+        icon: <Layout size={18} />,
+      },
+      {
+        title: 'Tokoh-Tokoh',
+        href: '/admin/figures',
+        icon: <Layout size={18} />,
+      },
+      {
+        title: 'Global Stage',
+        href: '/admin/global-stages',
+        icon: <Layout size={18} />,
+      },
+      {
+        title: 'Kerjasama',
+        href: '/admin/partnerships',
+        icon: <Layout size={18} />,
+      },
     ],
   },
   {

@@ -32,6 +32,7 @@ export function HomeSections({ sections, locale = 'id' }: HomeSectionsProps) {
   const admissionSections = sections.filter(s => s.type === 'admission')
   const featureSections = sections.filter(s => s.type === 'feature')
   const splitSections = sections.filter(s => s.type === 'split-screen')
+  // Masjid sections are rendered separately after FAQ in homepage
 
   const isExternalUrl = (url: string | null | undefined) => 
     url && (url.startsWith('http://') || url.startsWith('https://'))
