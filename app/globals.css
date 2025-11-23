@@ -49,6 +49,65 @@
   animation-delay: 0.4s;
 }
 
+/* Custom styles for page content */
+.prose iframe {
+  width: 100%;
+  height: 100%;
+  border-radius: 0.5rem;
+}
+
+.prose .aspect-video {
+  position: relative;
+  width: 100%;
+  padding-bottom: 56.25%; /* 16:9 aspect ratio */
+  overflow: hidden;
+  border-radius: 0.5rem;
+  background-color: #111827;
+  margin: 2rem 0;
+}
+
+.prose .aspect-video iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+/* Override prose styles for better spacing */
+.prose {
+  color: #374151;
+}
+
+.prose h2 {
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.prose h3 {
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.prose p {
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+  line-height: 1.75;
+}
+
+.prose > *:first-child {
+  margin-top: 0;
+}
+
+.prose > *:last-child {
+  margin-bottom: 0;
+}
+
 @keyframes fadeInUp {
   from {
     opacity: 0;

@@ -16,10 +16,21 @@ export default async function HomePage({
 }) {
   const locale = (searchParams.locale as 'id' | 'en') || 'id'
   
-  // Fetch menus
+  // Fetch menus with nested children (level 2)
   const menusData = await prisma.menu.findMany({
     where: { parentId: null, isActive: true },
-    include: { children: { where: { isActive: true }, orderBy: { order: 'asc' } } },
+    include: { 
+      children: { 
+        where: { isActive: true }, 
+        orderBy: { order: 'asc' },
+        include: {
+          children: {
+            where: { isActive: true },
+            orderBy: { order: 'asc' }
+          }
+        }
+      } 
+    },
     orderBy: { order: 'asc' }
   })
 
@@ -30,6 +41,10 @@ export default async function HomePage({
     children: menu.children.map((child: any) => ({
       ...child,
       titleEn: child.titleEn ?? undefined,
+      children: child.children?.map((grandchild: any) => ({
+        ...grandchild,
+        titleEn: grandchild.titleEn ?? undefined,
+      })) || [],
     })),
   }))
 

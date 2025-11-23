@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useSearchParams } from 'next/navigation'
 import { 
   LayoutDashboard, 
   Home, 
@@ -14,7 +14,9 @@ import {
   Settings,
   ChevronDown,
   ChevronRight,
-  Layout
+  Layout,
+  GraduationCap,
+  School
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -83,6 +85,16 @@ const menuItems: MenuItem[] = [
     ],
   },
   {
+    title: 'SMP',
+    href: '/admin/pages?slug=smp',
+    icon: <School size={20} />,
+  },
+  {
+    title: 'SMA',
+    href: '/admin/pages?slug=sma',
+    icon: <GraduationCap size={20} />,
+  },
+  {
     title: 'Halaman',
     href: '/admin/pages',
     icon: <FileText size={20} />,
@@ -98,6 +110,11 @@ const menuItems: MenuItem[] = [
     icon: <MenuIcon size={20} />,
   },
   {
+    title: 'Kategori',
+    href: '/admin/categories',
+    icon: <Layout size={20} />,
+  },
+  {
     title: 'Media',
     href: '/admin/media',
     icon: <Image size={20} />,
@@ -111,6 +128,7 @@ const menuItems: MenuItem[] = [
 
 export function AdminSidebar() {
   const pathname = usePathname()
+  const searchParams = useSearchParams()
   const [expandedMenus, setExpandedMenus] = useState<string[]>(['Home'])
 
   const toggleMenu = (title: string) => {
@@ -126,7 +144,26 @@ export function AdminSidebar() {
     if (href === '/admin') {
       return pathname === '/admin'
     }
-    return pathname.startsWith(href)
+    
+    // Extract base path from href (remove query parameters)
+    const hrefBase = href.split('?')[0]
+    
+    // Special handling for /admin/pages with query parameters
+    if (pathname === '/admin/pages' && hrefBase === '/admin/pages') {
+      const slugParam = searchParams.get('slug')
+      
+      // If href contains query parameter, check if it matches
+      if (href.includes('?slug=')) {
+        const hrefSlug = href.split('?slug=')[1]
+        return slugParam === hrefSlug
+      }
+      
+      // If href is just '/admin/pages' without query, only active if no slug param
+      return !slugParam
+    }
+    
+    // For other paths, use standard matching
+    return pathname.startsWith(hrefBase)
   }
 
   const isParentActive = (item: MenuItem): boolean => {

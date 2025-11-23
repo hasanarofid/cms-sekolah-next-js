@@ -14,45 +14,31 @@ export async function PUT(
 
     const body = await req.json()
     const {
-      title,
-      titleEn,
-      slug,
-      parentId,
-      menuType,
-      externalUrl,
-      icon,
-      description,
-      descriptionEn,
+      type,
+      data,
       order,
       isActive,
     } = body
 
-    const existingMenu = await prisma.menu.findUnique({
+    const existingBlock = await prisma.pageBlock.findUnique({
       where: { id: params.id },
     })
 
-    if (!existingMenu) {
-      return NextResponse.json({ error: 'Menu not found' }, { status: 404 })
+    if (!existingBlock) {
+      return NextResponse.json({ error: 'Block not found' }, { status: 404 })
     }
 
-    const menu = await prisma.menu.update({
+    const block = await prisma.pageBlock.update({
       where: { id: params.id },
       data: {
-        title,
-        titleEn: titleEn || null,
-        slug,
-        parentId: parentId || null,
-        menuType: menuType || 'page',
-        externalUrl: externalUrl || null,
-        icon: icon || null,
-        description: description || null,
-        descriptionEn: descriptionEn || null,
+        type,
+        data: JSON.stringify(data),
         order: order || 0,
         isActive: isActive !== undefined ? isActive : true,
       },
     })
 
-    return NextResponse.json(menu)
+    return NextResponse.json(block)
   } catch (error: any) {
     return NextResponse.json(
       { error: error.message || 'Terjadi kesalahan' },
@@ -71,15 +57,15 @@ export async function DELETE(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const existingMenu = await prisma.menu.findUnique({
+    const existingBlock = await prisma.pageBlock.findUnique({
       where: { id: params.id },
     })
 
-    if (!existingMenu) {
-      return NextResponse.json({ error: 'Menu not found' }, { status: 404 })
+    if (!existingBlock) {
+      return NextResponse.json({ error: 'Block not found' }, { status: 404 })
     }
 
-    await prisma.menu.delete({
+    await prisma.pageBlock.delete({
       where: { id: params.id },
     })
 

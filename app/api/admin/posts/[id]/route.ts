@@ -24,6 +24,7 @@ export async function PUT(
       excerptEn,
       featuredImage,
       category,
+      categoryId,
       tags,
       isPublished,
     } = body
@@ -56,6 +57,7 @@ export async function PUT(
         excerptEn: excerptEn || null,
         featuredImage: featuredImage || null,
         category: category || null,
+        categoryId: categoryId || null,
         tags: tags ? JSON.stringify(tags) : '[]',
         isPublished: isPublished || false,
         publishedAt,

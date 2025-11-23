@@ -2,10 +2,23 @@ import { getSession } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { NextResponse } from 'next/server'
 
-export async function PUT(
-  req: Request,
-  { params }: { params: { id: string } }
-) {
+export async function GET() {
+  try {
+    const pages = await prisma.page.findMany({
+      orderBy: { createdAt: 'desc' },
+      include: { author: { select: { name: true } } }
+    })
+
+    return NextResponse.json(pages)
+  } catch (error: any) {
+    return NextResponse.json(
+      { error: error.message || 'Terjadi kesalahan' },
+      { status: 500 }
+    )
+  }
+}
+
+export async function POST(req: Request) {
   try {
     const session = await getSession()
     if (!session) {
@@ -31,16 +44,7 @@ export async function PUT(
       isPublished,
     } = body
 
-    const existingPage = await prisma.page.findUnique({
-      where: { id: params.id },
-    })
-
-    if (!existingPage) {
-      return NextResponse.json({ error: 'Page not found' }, { status: 404 })
-    }
-
-    const page = await prisma.page.update({
-      where: { id: params.id },
+    const page = await prisma.page.create({
       data: {
         title,
         titleEn: titleEn || null,
@@ -57,42 +61,12 @@ export async function PUT(
         seoDescription: seoDescription || null,
         seoKeywords: seoKeywords || null,
         isPublished: isPublished || false,
-        publishedAt: isPublished ? (existingPage.publishedAt || new Date()) : null,
+        publishedAt: isPublished ? new Date() : null,
+        authorId: (session.user as any).id,
       },
     })
 
     return NextResponse.json(page)
-  } catch (error: any) {
-    return NextResponse.json(
-      { error: error.message || 'Terjadi kesalahan' },
-      { status: 500 }
-    )
-  }
-}
-
-export async function DELETE(
-  req: Request,
-  { params }: { params: { id: string } }
-) {
-  try {
-    const session = await getSession()
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    const existingPage = await prisma.page.findUnique({
-      where: { id: params.id },
-    })
-
-    if (!existingPage) {
-      return NextResponse.json({ error: 'Page not found' }, { status: 404 })
-    }
-
-    await prisma.page.delete({
-      where: { id: params.id },
-    })
-
-    return NextResponse.json({ success: true })
   } catch (error: any) {
     return NextResponse.json(
       { error: error.message || 'Terjadi kesalahan' },

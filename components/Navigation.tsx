@@ -10,6 +10,8 @@ interface MenuItem {
   title: string
   titleEn?: string | null
   slug: string
+  menuType?: string
+  externalUrl?: string | null
   children?: MenuItem[]
 }
 
@@ -21,9 +23,15 @@ interface NavigationProps {
 export function Navigation({ menus, locale = 'id' }: NavigationProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [openSubmenu, setOpenSubmenu] = useState<string | null>(null)
+  const [openSubmenuLevel2, setOpenSubmenuLevel2] = useState<string | null>(null)
 
   const toggleSubmenu = (menuId: string) => {
     setOpenSubmenu(openSubmenu === menuId ? null : menuId)
+    setOpenSubmenuLevel2(null) // Reset level 2 when toggling level 1
+  }
+
+  const toggleSubmenuLevel2 = (menuId: string) => {
+    setOpenSubmenuLevel2(openSubmenuLevel2 === menuId ? null : menuId)
   }
 
   return (
@@ -38,28 +46,88 @@ export function Navigation({ menus, locale = 'id' }: NavigationProps) {
 
           {/* Desktop Menu */}
           <div className="hidden md:flex md:items-center md:space-x-2">
-            {menus.map((menu) => (
+            {menus.map((menu: any) => (
               <div key={menu.id} className="relative group">
-                <Link
-                  href={`/${menu.slug}`}
-                  className="px-3 py-2 text-white hover:text-white/80 font-semibold text-sm transition-colors flex items-center drop-shadow-md"
-                >
-                  {locale === 'en' && menu.titleEn ? menu.titleEn : menu.title}
-                  {menu.children && menu.children.length > 0 && (
-                    <span className="ml-1 text-white/90">+</span>
-                  )}
-                </Link>
+                {menu.menuType === 'external' && menu.externalUrl ? (
+                  <a
+                    href={menu.externalUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-3 py-2 text-white hover:text-white/80 font-semibold text-sm transition-colors flex items-center drop-shadow-md"
+                  >
+                    {locale === 'en' && menu.titleEn ? menu.titleEn : menu.title}
+                    {menu.children && menu.children.length > 0 && (
+                      <span className="ml-1 text-white/90">+</span>
+                    )}
+                  </a>
+                ) : (
+                  <Link
+                    href={`/${menu.slug}`}
+                    className="px-3 py-2 text-white hover:text-white/80 font-semibold text-sm transition-colors flex items-center drop-shadow-md"
+                  >
+                    {locale === 'en' && menu.titleEn ? menu.titleEn : menu.title}
+                    {menu.children && menu.children.length > 0 && (
+                      <span className="ml-1 text-white/90">+</span>
+                    )}
+                  </Link>
+                )}
                 {menu.children && menu.children.length > 0 && (
                   <div className="absolute left-0 mt-1 w-64 bg-white/95 backdrop-blur-md rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 border border-gray-200/50">
                     <div className="py-2">
-                      {menu.children.map((child) => (
-                        <Link
-                          key={child.id}
-                          href={`/${child.slug}`}
-                          className="block px-4 py-2.5 text-sm text-gray-800 hover:bg-primary-50 hover:text-primary-700 font-medium transition-colors"
-                        >
-                          {locale === 'en' && child.titleEn ? child.titleEn : child.title}
-                        </Link>
+                      {menu.children.map((child: any) => (
+                        <div key={child.id} className="relative group/submenu">
+                          {child.menuType === 'external' && child.externalUrl ? (
+                            <a
+                              href={child.externalUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="block px-4 py-2.5 text-sm text-gray-800 hover:bg-primary-50 hover:text-primary-700 font-medium transition-colors relative"
+                            >
+                              {locale === 'en' && child.titleEn ? child.titleEn : child.title}
+                              {child.children && child.children.length > 0 && (
+                                <span className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400">›</span>
+                              )}
+                            </a>
+                          ) : (
+                            <Link
+                              href={`/${child.slug}`}
+                              className="block px-4 py-2.5 text-sm text-gray-800 hover:bg-primary-50 hover:text-primary-700 font-medium transition-colors relative"
+                            >
+                              {locale === 'en' && child.titleEn ? child.titleEn : child.title}
+                              {child.children && child.children.length > 0 && (
+                                <span className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400">›</span>
+                              )}
+                            </Link>
+                          )}
+                          {/* Level 2 Submenu */}
+                          {child.children && child.children.length > 0 && (
+                            <div className="absolute left-full top-0 ml-1 w-64 bg-white/95 backdrop-blur-md rounded-lg shadow-xl opacity-0 invisible group-hover/submenu:opacity-100 group-hover/submenu:visible transition-all duration-200 border border-gray-200/50 z-50">
+                              <div className="py-2">
+                                {child.children.map((grandchild: any) => (
+                                  grandchild.menuType === 'external' && grandchild.externalUrl ? (
+                                    <a
+                                      key={grandchild.id}
+                                      href={grandchild.externalUrl}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="block px-4 py-2.5 text-sm text-gray-800 hover:bg-primary-50 hover:text-primary-700 font-medium transition-colors"
+                                    >
+                                      {locale === 'en' && grandchild.titleEn ? grandchild.titleEn : grandchild.title}
+                                    </a>
+                                  ) : (
+                                    <Link
+                                      key={grandchild.id}
+                                      href={`/${grandchild.slug}`}
+                                      className="block px-4 py-2.5 text-sm text-gray-800 hover:bg-primary-50 hover:text-primary-700 font-medium transition-colors"
+                                    >
+                                      {locale === 'en' && grandchild.titleEn ? grandchild.titleEn : grandchild.title}
+                                    </Link>
+                                  )
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
                       ))}
                     </div>
                   </div>
@@ -111,16 +179,28 @@ export function Navigation({ menus, locale = 'id' }: NavigationProps) {
       {isOpen && (
         <div className="md:hidden border-t border-white/20 bg-white/95 backdrop-blur-md">
           <div className="px-2 pt-2 pb-3 space-y-1">
-            {menus.map((menu) => (
+            {menus.map((menu: any) => (
               <div key={menu.id}>
                 <div className="flex items-center justify-between">
-                  <Link
-                    href={`/${menu.slug}`}
-                    className="block px-3 py-2 text-gray-800 hover:bg-primary-50 rounded-md font-medium"
-                    onClick={() => setIsOpen(false)}
-                  >
-                    {locale === 'en' && menu.titleEn ? menu.titleEn : menu.title}
-                  </Link>
+                  {menu.menuType === 'external' && menu.externalUrl ? (
+                    <a
+                      href={menu.externalUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="block px-3 py-2 text-gray-800 hover:bg-primary-50 rounded-md font-medium flex-1"
+                      onClick={() => setIsOpen(false)}
+                    >
+                      {locale === 'en' && menu.titleEn ? menu.titleEn : menu.title}
+                    </a>
+                  ) : (
+                    <Link
+                      href={`/${menu.slug}`}
+                      className="block px-3 py-2 text-gray-800 hover:bg-primary-50 rounded-md font-medium flex-1"
+                      onClick={() => !menu.children || menu.children.length === 0 ? setIsOpen(false) : undefined}
+                    >
+                      {locale === 'en' && menu.titleEn ? menu.titleEn : menu.title}
+                    </Link>
+                  )}
                   {menu.children && menu.children.length > 0 && (
                     <button
                       onClick={() => toggleSubmenu(menu.id)}
@@ -137,15 +217,70 @@ export function Navigation({ menus, locale = 'id' }: NavigationProps) {
                 </div>
                 {menu.children && menu.children.length > 0 && openSubmenu === menu.id && (
                   <div className="pl-4 space-y-1">
-                    {menu.children.map((child) => (
-                      <Link
-                        key={child.id}
-                        href={`/${child.slug}`}
-                        className="block px-3 py-2 text-sm text-gray-600 hover:bg-primary-50 rounded-md"
-                        onClick={() => setIsOpen(false)}
-                      >
-                        {locale === 'en' && child.titleEn ? child.titleEn : child.title}
-                      </Link>
+                    {menu.children.map((child: any) => (
+                      <div key={child.id}>
+                        <div className="flex items-center justify-between">
+                          {child.menuType === 'external' && child.externalUrl ? (
+                            <a
+                              href={child.externalUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="block px-3 py-2 text-sm text-gray-600 hover:bg-primary-50 rounded-md flex-1"
+                              onClick={() => !child.children || child.children.length === 0 ? setIsOpen(false) : undefined}
+                            >
+                              {locale === 'en' && child.titleEn ? child.titleEn : child.title}
+                            </a>
+                          ) : (
+                            <Link
+                              href={`/${child.slug}`}
+                              className="block px-3 py-2 text-sm text-gray-600 hover:bg-primary-50 rounded-md flex-1"
+                              onClick={() => !child.children || child.children.length === 0 ? setIsOpen(false) : undefined}
+                            >
+                              {locale === 'en' && child.titleEn ? child.titleEn : child.title}
+                            </Link>
+                          )}
+                          {child.children && child.children.length > 0 && (
+                            <button
+                              onClick={() => toggleSubmenuLevel2(child.id)}
+                              className="px-3 py-2"
+                            >
+                              <ChevronDown
+                                className={cn(
+                                  "h-4 w-4 transition-transform",
+                                  openSubmenuLevel2 === child.id && "rotate-180"
+                                )}
+                              />
+                            </button>
+                          )}
+                        </div>
+                        {child.children && child.children.length > 0 && openSubmenuLevel2 === child.id && (
+                          <div className="pl-4 space-y-1">
+                            {child.children.map((grandchild: any) => (
+                              grandchild.menuType === 'external' && grandchild.externalUrl ? (
+                                <a
+                                  key={grandchild.id}
+                                  href={grandchild.externalUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="block px-3 py-2 text-xs text-gray-500 hover:bg-primary-50 rounded-md"
+                                  onClick={() => setIsOpen(false)}
+                                >
+                                  {locale === 'en' && grandchild.titleEn ? grandchild.titleEn : grandchild.title}
+                                </a>
+                              ) : (
+                                <Link
+                                  key={grandchild.id}
+                                  href={`/${grandchild.slug}`}
+                                  className="block px-3 py-2 text-xs text-gray-500 hover:bg-primary-50 rounded-md"
+                                  onClick={() => setIsOpen(false)}
+                                >
+                                  {locale === 'en' && grandchild.titleEn ? grandchild.titleEn : grandchild.title}
+                                </Link>
+                              )
+                            ))}
+                          </div>
+                        )}
+                      </div>
                     ))}
                   </div>
                 )}

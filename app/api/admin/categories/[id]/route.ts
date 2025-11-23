@@ -14,45 +14,43 @@ export async function PUT(
 
     const body = await req.json()
     const {
-      title,
-      titleEn,
+      name,
+      nameEn,
       slug,
-      parentId,
-      menuType,
-      externalUrl,
-      icon,
       description,
       descriptionEn,
+      image,
+      parentId,
+      categoryType,
       order,
       isActive,
     } = body
 
-    const existingMenu = await prisma.menu.findUnique({
+    const existingCategory = await (prisma as any).category.findUnique({
       where: { id: params.id },
     })
 
-    if (!existingMenu) {
-      return NextResponse.json({ error: 'Menu not found' }, { status: 404 })
+    if (!existingCategory) {
+      return NextResponse.json({ error: 'Category not found' }, { status: 404 })
     }
 
-    const menu = await prisma.menu.update({
+    const category = await (prisma as any).category.update({
       where: { id: params.id },
       data: {
-        title,
-        titleEn: titleEn || null,
+        name,
+        nameEn: nameEn || null,
         slug,
-        parentId: parentId || null,
-        menuType: menuType || 'page',
-        externalUrl: externalUrl || null,
-        icon: icon || null,
         description: description || null,
         descriptionEn: descriptionEn || null,
+        image: image || null,
+        parentId: parentId || null,
+        categoryType: categoryType || 'general',
         order: order || 0,
         isActive: isActive !== undefined ? isActive : true,
       },
     })
 
-    return NextResponse.json(menu)
+    return NextResponse.json(category)
   } catch (error: any) {
     return NextResponse.json(
       { error: error.message || 'Terjadi kesalahan' },
@@ -71,15 +69,15 @@ export async function DELETE(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const existingMenu = await prisma.menu.findUnique({
+    const existingCategory = await (prisma as any).category.findUnique({
       where: { id: params.id },
     })
 
-    if (!existingMenu) {
-      return NextResponse.json({ error: 'Menu not found' }, { status: 404 })
+    if (!existingCategory) {
+      return NextResponse.json({ error: 'Category not found' }, { status: 404 })
     }
 
-    await prisma.menu.delete({
+    await (prisma as any).category.delete({
       where: { id: params.id },
     })
 

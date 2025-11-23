@@ -16,7 +16,18 @@ export default async function PostPage({
 
   const menusData = await prisma.menu.findMany({
     where: { parentId: null, isActive: true },
-    include: { children: { where: { isActive: true }, orderBy: { order: 'asc' } } },
+    include: { 
+      children: { 
+        where: { isActive: true }, 
+        orderBy: { order: 'asc' },
+        include: {
+          children: {
+            where: { isActive: true },
+            orderBy: { order: 'asc' }
+          }
+        }
+      } 
+    },
     orderBy: { order: 'asc' }
   })
 
@@ -26,6 +37,10 @@ export default async function PostPage({
     children: menu.children.map((child: any) => ({
       ...child,
       titleEn: child.titleEn ?? undefined,
+      children: child.children?.map((grandchild: any) => ({
+        ...grandchild,
+        titleEn: grandchild.titleEn ?? undefined,
+      })) || [],
     })),
   }))
 

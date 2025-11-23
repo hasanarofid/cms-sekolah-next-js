@@ -2,10 +2,24 @@ import { getSession } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { NextResponse } from 'next/server'
 
-export async function PUT(
-  req: Request,
-  { params }: { params: { id: string } }
-) {
+export async function GET() {
+  try {
+    const menus = await prisma.menu.findMany({
+      where: { parentId: null },
+      include: { children: { orderBy: { order: 'asc' } } },
+      orderBy: { order: 'asc' }
+    })
+
+    return NextResponse.json(menus)
+  } catch (error: any) {
+    return NextResponse.json(
+      { error: error.message || 'Terjadi kesalahan' },
+      { status: 500 }
+    )
+  }
+}
+
+export async function POST(req: Request) {
   try {
     const session = await getSession()
     if (!session) {
@@ -27,16 +41,7 @@ export async function PUT(
       isActive,
     } = body
 
-    const existingMenu = await prisma.menu.findUnique({
-      where: { id: params.id },
-    })
-
-    if (!existingMenu) {
-      return NextResponse.json({ error: 'Menu not found' }, { status: 404 })
-    }
-
-    const menu = await prisma.menu.update({
-      where: { id: params.id },
+    const menu = await prisma.menu.create({
       data: {
         title,
         titleEn: titleEn || null,
@@ -53,37 +58,6 @@ export async function PUT(
     })
 
     return NextResponse.json(menu)
-  } catch (error: any) {
-    return NextResponse.json(
-      { error: error.message || 'Terjadi kesalahan' },
-      { status: 500 }
-    )
-  }
-}
-
-export async function DELETE(
-  req: Request,
-  { params }: { params: { id: string } }
-) {
-  try {
-    const session = await getSession()
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    const existingMenu = await prisma.menu.findUnique({
-      where: { id: params.id },
-    })
-
-    if (!existingMenu) {
-      return NextResponse.json({ error: 'Menu not found' }, { status: 404 })
-    }
-
-    await prisma.menu.delete({
-      where: { id: params.id },
-    })
-
-    return NextResponse.json({ success: true })
   } catch (error: any) {
     return NextResponse.json(
       { error: error.message || 'Terjadi kesalahan' },

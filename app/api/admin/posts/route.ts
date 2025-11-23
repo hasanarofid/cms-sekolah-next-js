@@ -21,6 +21,7 @@ export async function POST(req: Request) {
       excerptEn,
       featuredImage,
       category,
+      categoryId,
       tags,
       isPublished,
     } = body
@@ -38,6 +39,7 @@ export async function POST(req: Request) {
         excerptEn: excerptEn || null,
         featuredImage: featuredImage || null,
         category: category || null,
+        categoryId: categoryId || null,
         tags: tags ? JSON.stringify(tags) : '[]',
         isPublished: isPublished || false,
         publishedAt: isPublished ? new Date() : null,

@@ -15,7 +15,18 @@ export default async function BeritaPage({
 
   const menusData = await prisma.menu.findMany({
     where: { parentId: null, isActive: true },
-    include: { children: { where: { isActive: true }, orderBy: { order: 'asc' } } },
+    include: { 
+      children: { 
+        where: { isActive: true }, 
+        orderBy: { order: 'asc' },
+        include: {
+          children: {
+            where: { isActive: true },
+            orderBy: { order: 'asc' }
+          }
+        }
+      } 
+    },
     orderBy: { order: 'asc' }
   })
 
@@ -25,6 +36,10 @@ export default async function BeritaPage({
     children: menu.children.map(child => ({
       ...child,
       titleEn: child.titleEn ?? undefined,
+      children: child.children?.map((grandchild: any) => ({
+        ...grandchild,
+        titleEn: grandchild.titleEn ?? undefined,
+      })) || [],
     })),
   }))
 
