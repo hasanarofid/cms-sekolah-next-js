@@ -17,6 +17,11 @@ export default async function EditPagePage({
 
   const page = await prisma.page.findUnique({
     where: { id: params.id },
+    include: {
+      blocks: {
+        orderBy: { order: 'asc' }
+      }
+    }
   })
 
   if (!page) {

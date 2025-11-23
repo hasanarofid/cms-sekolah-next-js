@@ -221,7 +221,7 @@ model PageBlock {
   id            String    @id @default(cuid())
   pageId        String
   page          Page      @relation(fields: [pageId], references: [id], onDelete: Cascade)
-  type          String    // 'hero', 'text', 'image', 'gallery', 'video', 'two-column', 'accordion', 'cards', 'testimonial'
+  type          String    // 'hero-slider', 'home-section', 'faq-section', 'figures-section', 'partnership-section', 'split-screen', 'gallery-carousel', 'video-section', 'text', 'image', 'two-column', 'accordion', 'cards', 'testimonial'
   order         Int       @default(0)
   data          String    // JSON string for block data
   isActive      Boolean   @default(true)

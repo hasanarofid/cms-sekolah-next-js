@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { Navigation } from '@/components/Navigation'
 import { Footer } from '@/components/Footer'
+import { WhatsAppButton } from '@/components/WhatsAppButton'
 import { HeroSlider } from '@/components/HeroSlider'
 import { HomeSections } from '@/components/HomeSections'
 import { FAQSection } from '@/components/FAQSection'
@@ -8,6 +9,28 @@ import { FiguresSection } from '@/components/FiguresSection'
 import { PartnershipsSection } from '@/components/PartnershipsSection'
 import { prisma } from '@/lib/prisma'
 import { Play, ArrowRight } from 'lucide-react'
+import type { Metadata } from 'next'
+
+export async function generateMetadata(): Promise<Metadata> {
+  const websiteTitle = await prisma.setting.findUnique({
+    where: { key: 'website_title' }
+  })
+  const websiteFavicon = await prisma.setting.findUnique({
+    where: { key: 'website_favicon' }
+  })
+
+  const siteName = websiteTitle?.value || 'Al Azhar IIBS'
+
+  return {
+    title: siteName, // Homepage uses site name only
+    description: "Al Azhar International Islamic Boarding School - Qur'anic Learning, Courtesy Oriented and World Class Education",
+    icons: websiteFavicon?.value ? {
+      icon: websiteFavicon.value,
+      shortcut: websiteFavicon.value,
+      apple: websiteFavicon.value,
+    } : undefined,
+  }
+}
 
 export default async function HomePage({
   searchParams,
@@ -105,17 +128,74 @@ export default async function HomePage({
     where: { key: 'figures_section_background' }
   })
 
+  // Fetch website settings
+  const websiteLogo = await prisma.setting.findUnique({
+    where: { key: 'website_logo' }
+  })
+  const websiteTitle = await prisma.setting.findUnique({
+    where: { key: 'website_title' }
+  })
+  const showWebsiteName = await prisma.setting.findUnique({
+    where: { key: 'show_website_name' }
+  })
+
+  // Fetch WhatsApp settings
+  const whatsappPhone = await prisma.setting.findUnique({
+    where: { key: 'whatsapp_phone' }
+  })
+  const whatsappMessage = await prisma.setting.findUnique({
+    where: { key: 'whatsapp_message' }
+  })
+
+  // Fetch Footer settings
+  const footerAddress = await prisma.setting.findUnique({
+    where: { key: 'footer_address' }
+  })
+  const footerPhone = await prisma.setting.findUnique({
+    where: { key: 'footer_phone' }
+  })
+  const footerEmail = await prisma.setting.findUnique({
+    where: { key: 'footer_email' }
+  })
+  const androidAppUrl = await prisma.setting.findUnique({
+    where: { key: 'android_app_url' }
+  })
+  const iosAppUrl = await prisma.setting.findUnique({
+    where: { key: 'ios_app_url' }
+  })
+  const facebookUrl = await prisma.setting.findUnique({
+    where: { key: 'facebook_url' }
+  })
+  const instagramUrl = await prisma.setting.findUnique({
+    where: { key: 'instagram_url' }
+  })
+  const youtubeUrl = await prisma.setting.findUnique({
+    where: { key: 'youtube_url' }
+  })
+
   return (
     <div className="min-h-screen">
       {/* Hero Slider Section with Navigation Overlay */}
       {sliders.length > 0 ? (
         <div className="relative">
-          <Navigation menus={menus} locale={locale} />
+          <Navigation 
+            menus={menus} 
+            locale={locale}
+            logo={websiteLogo?.value || null}
+            websiteName={websiteTitle?.value || null}
+            showWebsiteName={showWebsiteName?.value === 'true'}
+          />
           <HeroSlider sliders={sliders} locale={locale} />
         </div>
       ) : (
         <>
-          <Navigation menus={menus} locale={locale} />
+          <Navigation 
+            menus={menus} 
+            locale={locale}
+            logo={websiteLogo?.value || null}
+            websiteName={websiteTitle?.value || null}
+            showWebsiteName={showWebsiteName?.value === 'true'}
+          />
           {/* Hero Section (Fallback if no sliders) */}
           <section className="relative bg-gradient-to-r from-primary-600 to-primary-800 text-white">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
@@ -394,7 +474,22 @@ export default async function HomePage({
       {/* Partnerships Section - After Global Stage */}
       <PartnershipsSection partnerships={partnerships} locale={locale} />
 
-      <Footer locale={locale} />
+      <Footer 
+        locale={locale}
+        address={footerAddress?.value || null}
+        phone={footerPhone?.value || null}
+        email={footerEmail?.value || null}
+        androidAppUrl={androidAppUrl?.value || null}
+        iosAppUrl={iosAppUrl?.value || null}
+        facebookUrl={facebookUrl?.value || null}
+        instagramUrl={instagramUrl?.value || null}
+        youtubeUrl={youtubeUrl?.value || null}
+      />
+
+      <WhatsAppButton 
+        phoneNumber={whatsappPhone?.value || null}
+        defaultMessage={whatsappMessage?.value || null}
+      />
     </div>
   )
 }

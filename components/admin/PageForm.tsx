@@ -8,6 +8,7 @@ import { z } from 'zod'
 import dynamic from 'next/dynamic'
 import { slugify } from '@/lib/utils'
 import { Upload, X, Loader2 } from 'lucide-react'
+import { PageBlocksManager } from './PageBlocksManager'
 
 const ReactQuill = dynamic(() => import('react-quill'), { ssr: false })
 import 'react-quill/dist/quill.snow.css'
@@ -50,6 +51,13 @@ interface PageFormProps {
     seoDescription?: string | null
     seoKeywords?: string | null
     isPublished: boolean
+    blocks?: Array<{
+      id: string
+      type: string
+      data: string
+      order: number
+      isActive: boolean
+    }>
   }
   menus?: Array<{ id: string; title: string; slug: string }>
 }
@@ -192,6 +200,7 @@ export function PageForm({ page, menus = [] }: PageFormProps) {
   }
 
   return (
+    <>
     <form onSubmit={handleSubmit(onSubmit)} className="bg-white rounded-lg shadow p-6 space-y-6">
       {error && (
         <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
@@ -467,6 +476,17 @@ export function PageForm({ page, menus = [] }: PageFormProps) {
         </button>
       </div>
     </form>
+
+    {/* Page Blocks Manager - Only show when editing existing page, placed outside form */}
+    {page && (
+      <div className="mt-8">
+        <PageBlocksManager 
+          pageId={page.id} 
+          initialBlocks={page.blocks || []}
+        />
+      </div>
+    )}
+    </>
   )
 }
 

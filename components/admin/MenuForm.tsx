@@ -62,7 +62,7 @@ export function MenuForm({ menu, parentMenus = [] }: MenuFormProps) {
       ? {
           title: menu.title,
           titleEn: menu.titleEn || '',
-          slug: menu.slug,
+          slug: menu.slug.startsWith('#-') ? '#' : menu.slug, // Show "#" if it's a parent menu slug
           parentId: menu.parentId || '',
           menuType: menu.menuType as 'page' | 'external' | 'category' | 'post-list',
           externalUrl: menu.externalUrl || '',
@@ -81,14 +81,19 @@ export function MenuForm({ menu, parentMenus = [] }: MenuFormProps) {
 
   const menuType = watch('menuType')
   const title = watch('title')
+  const parentId = watch('parentId')
+  const slug = watch('slug')
 
-  // Auto-generate slug from title
+  // Auto-generate slug from title (skip if slug is "#" or if it's a parent menu)
   useEffect(() => {
-    if (!menu && title) {
-      const generatedSlug = slugify(title)
-      setValue('slug', generatedSlug, { shouldValidate: true })
+    if (!menu && title && !parentId) {
+      // Only auto-generate if slug is empty or not manually set to "#"
+      if (!slug || (slug && slug !== '#' && slug === slugify(title))) {
+        const generatedSlug = slugify(title)
+        setValue('slug', generatedSlug, { shouldValidate: true })
+      }
     }
-  }, [title, menu, setValue])
+  }, [title, menu, setValue, parentId, slug])
 
   const onSubmit = async (data: MenuFormData) => {
     setIsLoading(true)
@@ -169,13 +174,17 @@ export function MenuForm({ menu, parentMenus = [] }: MenuFormProps) {
             {...register('slug')}
             type="text"
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-            readOnly={!menu}
+            readOnly={!menu && !!parentId}
+            placeholder={parentId ? "Slug akan otomatis dibuat dari judul" : !menu ? "Slug akan otomatis dibuat dari judul, atau gunakan '#' untuk menu utama" : ""}
           />
           {errors.slug && (
             <p className="mt-1 text-sm text-red-600">{errors.slug.message}</p>
           )}
-          {!menu && (
-            <p className="mt-1 text-sm text-gray-500">Slug akan otomatis dibuat dari judul</p>
+          {!menu && !parentId && (
+            <p className="mt-1 text-sm text-gray-500">Slug akan otomatis dibuat dari judul, atau gunakan "#" untuk menu utama (parent menu)</p>
+          )}
+          {!parentId && menu && (
+            <p className="mt-1 text-sm text-blue-600">Untuk menu utama (parent), gunakan "#" sebagai slug. Slug "#" bisa duplikat untuk parent menu.</p>
           )}
         </div>
 

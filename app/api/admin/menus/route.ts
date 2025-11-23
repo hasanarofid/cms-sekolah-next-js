@@ -41,11 +41,31 @@ export async function POST(req: Request) {
       isActive,
     } = body
 
+    // For parent menus with slug "#", make it unique by adding a timestamp or random string
+    // But we'll store it as "#" in the database by using a workaround
+    let finalSlug = slug
+    if (slug === '#' && !parentId) {
+      // For parent menu with slug "#", we need to make it unique
+      // We'll use a combination that's unique but still represents "#"
+      finalSlug = `#-${Date.now()}-${Math.random().toString(36).substring(7)}`
+    } else if (slug !== '#') {
+      // Check if slug already exists (only for non-"#" slugs)
+      const existingMenu = await prisma.menu.findUnique({
+        where: { slug },
+      })
+      if (existingMenu) {
+        return NextResponse.json(
+          { error: 'Slug sudah digunakan' },
+          { status: 400 }
+        )
+      }
+    }
+
     const menu = await prisma.menu.create({
       data: {
         title,
         titleEn: titleEn || null,
-        slug,
+        slug: finalSlug,
         parentId: parentId || null,
         menuType: menuType || 'page',
         externalUrl: externalUrl || null,

@@ -18,9 +18,12 @@ interface MenuItem {
 interface NavigationProps {
   menus: MenuItem[]
   locale?: 'id' | 'en'
+  logo?: string | null
+  websiteName?: string | null
+  showWebsiteName?: boolean
 }
 
-export function Navigation({ menus, locale = 'id' }: NavigationProps) {
+export function Navigation({ menus, locale = 'id', logo, websiteName, showWebsiteName = true }: NavigationProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [openSubmenu, setOpenSubmenu] = useState<string | null>(null)
   const [openSubmenuLevel2, setOpenSubmenuLevel2] = useState<string | null>(null)
@@ -34,18 +37,36 @@ export function Navigation({ menus, locale = 'id' }: NavigationProps) {
     setOpenSubmenuLevel2(openSubmenuLevel2 === menuId ? null : menuId)
   }
 
+  const hasLogoOrTitle = (logo && showWebsiteName) || showWebsiteName
+  const shouldCenterMenu = !hasLogoOrTitle
+
   return (
-    <nav className="bg-white/30 backdrop-blur-md shadow-lg fixed top-0 left-0 right-0 z-50 border-b border-white/20">
+    <nav className="absolute top-0 left-0 right-0 z-50 bg-transparent">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-20">
-          <div className="flex items-center">
-            <Link href="/" className="text-2xl md:text-3xl font-bold text-white hover:text-white/90 transition-colors drop-shadow-lg">
-              Al Azhar IIBS
-            </Link>
-          </div>
+          {hasLogoOrTitle ? (
+            <div className="flex items-center space-x-3">
+              {logo && showWebsiteName && (
+                <Link href="/" className="flex items-center">
+                  <img
+                    src={logo}
+                    alt={websiteName || 'Logo'}
+                    className="h-12 w-auto object-contain drop-shadow-lg"
+                  />
+                </Link>
+              )}
+              {showWebsiteName && (
+                <Link href="/" className="text-2xl md:text-3xl font-bold text-white hover:text-white/90 transition-colors drop-shadow-lg">
+                  {websiteName || 'Al Azhar IIBS'}
+                </Link>
+              )}
+            </div>
+          ) : (
+            <div className="hidden md:block flex-1"></div>
+          )}
 
           {/* Desktop Menu */}
-          <div className="hidden md:flex md:items-center md:space-x-2">
+          <div className={`hidden md:flex md:items-center md:space-x-2 ${shouldCenterMenu ? 'absolute left-1/2 transform -translate-x-1/2' : ''}`}>
             {menus.map((menu: any) => (
               <div key={menu.id} className="relative group">
                 {menu.menuType === 'external' && menu.externalUrl ? (
@@ -61,15 +82,24 @@ export function Navigation({ menus, locale = 'id' }: NavigationProps) {
                     )}
                   </a>
                 ) : (
-                  <Link
-                    href={`/${menu.slug}`}
-                    className="px-3 py-2 text-white hover:text-white/80 font-semibold text-sm transition-colors flex items-center drop-shadow-md"
-                  >
-                    {locale === 'en' && menu.titleEn ? menu.titleEn : menu.title}
-                    {menu.children && menu.children.length > 0 && (
-                      <span className="ml-1 text-white/90">+</span>
-                    )}
-                  </Link>
+                  menu.slug.startsWith('#') ? (
+                    <span className="px-3 py-2 text-white font-semibold text-sm flex items-center drop-shadow-md cursor-default">
+                      {locale === 'en' && menu.titleEn ? menu.titleEn : menu.title}
+                      {menu.children && menu.children.length > 0 && (
+                        <span className="ml-1 text-white/90">+</span>
+                      )}
+                    </span>
+                  ) : (
+                    <Link
+                      href={`/${menu.slug}`}
+                      className="px-3 py-2 text-white hover:text-white/80 font-semibold text-sm transition-colors flex items-center drop-shadow-md"
+                    >
+                      {locale === 'en' && menu.titleEn ? menu.titleEn : menu.title}
+                      {menu.children && menu.children.length > 0 && (
+                        <span className="ml-1 text-white/90">+</span>
+                      )}
+                    </Link>
+                  )
                 )}
                 {menu.children && menu.children.length > 0 && (
                   <div className="absolute left-0 mt-1 w-64 bg-white/95 backdrop-blur-md rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 border border-gray-200/50">
@@ -89,15 +119,24 @@ export function Navigation({ menus, locale = 'id' }: NavigationProps) {
                               )}
                             </a>
                           ) : (
-                            <Link
-                              href={`/${child.slug}`}
-                              className="block px-4 py-2.5 text-sm text-gray-800 hover:bg-primary-50 hover:text-primary-700 font-medium transition-colors relative"
-                            >
-                              {locale === 'en' && child.titleEn ? child.titleEn : child.title}
-                              {child.children && child.children.length > 0 && (
-                                <span className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400">›</span>
-                              )}
-                            </Link>
+                            child.slug.startsWith('#') ? (
+                              <span className="block px-4 py-2.5 text-sm text-gray-800 font-medium relative">
+                                {locale === 'en' && child.titleEn ? child.titleEn : child.title}
+                                {child.children && child.children.length > 0 && (
+                                  <span className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400">›</span>
+                                )}
+                              </span>
+                            ) : (
+                              <Link
+                                href={`/${child.slug}`}
+                                className="block px-4 py-2.5 text-sm text-gray-800 hover:bg-primary-50 hover:text-primary-700 font-medium transition-colors relative"
+                              >
+                                {locale === 'en' && child.titleEn ? child.titleEn : child.title}
+                                {child.children && child.children.length > 0 && (
+                                  <span className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400">›</span>
+                                )}
+                              </Link>
+                            )
                           )}
                           {/* Level 2 Submenu */}
                           {child.children && child.children.length > 0 && (
@@ -115,13 +154,22 @@ export function Navigation({ menus, locale = 'id' }: NavigationProps) {
                                       {locale === 'en' && grandchild.titleEn ? grandchild.titleEn : grandchild.title}
                                     </a>
                                   ) : (
-                                    <Link
-                                      key={grandchild.id}
-                                      href={`/${grandchild.slug}`}
-                                      className="block px-4 py-2.5 text-sm text-gray-800 hover:bg-primary-50 hover:text-primary-700 font-medium transition-colors"
-                                    >
-                                      {locale === 'en' && grandchild.titleEn ? grandchild.titleEn : grandchild.title}
-                                    </Link>
+                                    grandchild.slug.startsWith('#') ? (
+                                      <span
+                                        key={grandchild.id}
+                                        className="block px-4 py-2.5 text-sm text-gray-800 font-medium"
+                                      >
+                                        {locale === 'en' && grandchild.titleEn ? grandchild.titleEn : grandchild.title}
+                                      </span>
+                                    ) : (
+                                      <Link
+                                        key={grandchild.id}
+                                        href={`/${grandchild.slug}`}
+                                        className="block px-4 py-2.5 text-sm text-gray-800 hover:bg-primary-50 hover:text-primary-700 font-medium transition-colors"
+                                      >
+                                        {locale === 'en' && grandchild.titleEn ? grandchild.titleEn : grandchild.title}
+                                      </Link>
+                                    )
                                   )
                                 ))}
                               </div>
@@ -135,7 +183,7 @@ export function Navigation({ menus, locale = 'id' }: NavigationProps) {
               </div>
             ))}
             {/* Language Switcher with Flag Icons */}
-            <div className="ml-6 flex items-center space-x-1 border-l border-white/30 pl-4">
+            <div className={`${shouldCenterMenu ? 'ml-6' : 'ml-6'} flex items-center space-x-1 border-l border-white/30 pl-4`}>
               <Link
                 href="/?locale=en"
                 className={cn(
@@ -193,13 +241,19 @@ export function Navigation({ menus, locale = 'id' }: NavigationProps) {
                       {locale === 'en' && menu.titleEn ? menu.titleEn : menu.title}
                     </a>
                   ) : (
-                    <Link
-                      href={`/${menu.slug}`}
-                      className="block px-3 py-2 text-gray-800 hover:bg-primary-50 rounded-md font-medium flex-1"
-                      onClick={() => !menu.children || menu.children.length === 0 ? setIsOpen(false) : undefined}
-                    >
-                      {locale === 'en' && menu.titleEn ? menu.titleEn : menu.title}
-                    </Link>
+                    menu.slug.startsWith('#') ? (
+                      <span className="block px-3 py-2 text-gray-800 font-medium flex-1">
+                        {locale === 'en' && menu.titleEn ? menu.titleEn : menu.title}
+                      </span>
+                    ) : (
+                      <Link
+                        href={`/${menu.slug}`}
+                        className="block px-3 py-2 text-gray-800 hover:bg-primary-50 rounded-md font-medium flex-1"
+                        onClick={() => !menu.children || menu.children.length === 0 ? setIsOpen(false) : undefined}
+                      >
+                        {locale === 'en' && menu.titleEn ? menu.titleEn : menu.title}
+                      </Link>
+                    )
                   )}
                   {menu.children && menu.children.length > 0 && (
                     <button
@@ -231,13 +285,19 @@ export function Navigation({ menus, locale = 'id' }: NavigationProps) {
                               {locale === 'en' && child.titleEn ? child.titleEn : child.title}
                             </a>
                           ) : (
-                            <Link
-                              href={`/${child.slug}`}
-                              className="block px-3 py-2 text-sm text-gray-600 hover:bg-primary-50 rounded-md flex-1"
-                              onClick={() => !child.children || child.children.length === 0 ? setIsOpen(false) : undefined}
-                            >
-                              {locale === 'en' && child.titleEn ? child.titleEn : child.title}
-                            </Link>
+                            child.slug.startsWith('#') ? (
+                              <span className="block px-3 py-2 text-sm text-gray-600 flex-1">
+                                {locale === 'en' && child.titleEn ? child.titleEn : child.title}
+                              </span>
+                            ) : (
+                              <Link
+                                href={`/${child.slug}`}
+                                className="block px-3 py-2 text-sm text-gray-600 hover:bg-primary-50 rounded-md flex-1"
+                                onClick={() => !child.children || child.children.length === 0 ? setIsOpen(false) : undefined}
+                              >
+                                {locale === 'en' && child.titleEn ? child.titleEn : child.title}
+                              </Link>
+                            )
                           )}
                           {child.children && child.children.length > 0 && (
                             <button
@@ -268,14 +328,23 @@ export function Navigation({ menus, locale = 'id' }: NavigationProps) {
                                   {locale === 'en' && grandchild.titleEn ? grandchild.titleEn : grandchild.title}
                                 </a>
                               ) : (
-                                <Link
-                                  key={grandchild.id}
-                                  href={`/${grandchild.slug}`}
-                                  className="block px-3 py-2 text-xs text-gray-500 hover:bg-primary-50 rounded-md"
-                                  onClick={() => setIsOpen(false)}
-                                >
-                                  {locale === 'en' && grandchild.titleEn ? grandchild.titleEn : grandchild.title}
-                                </Link>
+                                grandchild.slug.startsWith('#') ? (
+                                  <span
+                                    key={grandchild.id}
+                                    className="block px-3 py-2 text-xs text-gray-500"
+                                  >
+                                    {locale === 'en' && grandchild.titleEn ? grandchild.titleEn : grandchild.title}
+                                  </span>
+                                ) : (
+                                  <Link
+                                    key={grandchild.id}
+                                    href={`/${grandchild.slug}`}
+                                    className="block px-3 py-2 text-xs text-gray-500 hover:bg-primary-50 rounded-md"
+                                    onClick={() => setIsOpen(false)}
+                                  >
+                                    {locale === 'en' && grandchild.titleEn ? grandchild.titleEn : grandchild.title}
+                                  </Link>
+                                )
                               )
                             ))}
                           </div>
