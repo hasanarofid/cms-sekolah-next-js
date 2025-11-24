@@ -37,35 +37,38 @@ cd cmssekolah
 npm install
 ```
 
-3. Setup database
-- Buat file `.env` dari `.env.example`
-- File `.env` sudah dikonfigurasi untuk SQLite (file:./dev.db)
-- Isi `NEXTAUTH_SECRET` dengan secret key (bisa generate dengan `openssl rand -base64 32`)
+3. Setup environment variables
+- Copy file `.env.example` ke `.env`:
+```bash
+cp .env.example .env
+```
+- Edit file `.env` dan isi `NEXTAUTH_SECRET` (generate dengan: `openssl rand -base64 32`)
 - **Catatan**: SQLite sudah siap digunakan untuk development dan production kecil. Untuk production dengan traffic tinggi, bisa diganti ke PostgreSQL dengan mengubah `DATABASE_URL` di `.env`
 
-4. Setup database schema
+4. Setup database dan seed data (OTOMATIS)
+```bash
+npm run setup
+```
+
+Script ini akan otomatis:
+- ✅ Generate Prisma Client (`prisma generate`)
+- ✅ Membuat database schema (`prisma db push`)
+- ✅ Mengisi database dengan data awal (`npm run seed`)
+
+**Atau manual step by step:**
 ```bash
 npx prisma generate
 npx prisma db push
-```
-
-5. Buat admin user pertama (opsional, bisa melalui Prisma Studio)
-```bash
-npx prisma studio
-```
-
-Atau jalankan script seed (jika ada):
-```bash
 npm run seed
 ```
 
-6. Jalankan development server
+5. Jalankan development server
 ```bash
 npm run dev
 ```
 
-7. Buka browser di `http://localhost:3000`
-8. Akses admin panel di `http://localhost:3000/admin/login`
+6. Buka browser di `http://localhost:3000`
+7. Akses admin panel di `http://localhost:3000/admin/login`
 
 ## Struktur Project
 
@@ -112,11 +115,15 @@ Untuk CMS sekolah, SQLite biasanya sudah cukup!
 
 ## Development
 
+- `npm run setup` - Setup database dan seed data (generate, push, seed)
 - `npm run dev` - Jalankan development server
 - `npm run build` - Build untuk production
 - `npm run start` - Jalankan production server
 - `npm run lint` - Lint code
+- `npm run seed` - Seed database dengan data awal
 - `npx prisma studio` - Buka Prisma Studio untuk manage database
+- `npx prisma generate` - Generate Prisma Client
+- `npx prisma db push` - Push schema ke database
 
 ## License
 
