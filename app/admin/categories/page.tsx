@@ -2,6 +2,7 @@ import { prisma } from '@/lib/prisma'
 import Link from 'next/link'
 import { Plus, Edit } from 'lucide-react'
 import { DeleteButton } from '@/components/admin/DeleteButton'
+import { Category } from '@prisma/client'
 
 export const dynamic = 'force-dynamic'
 
@@ -12,12 +13,16 @@ const categoryTypeLabels: Record<string, string> = {
   'general': 'Umum',
 }
 
+type CategoryWithChildren = Category & {
+  children: Category[]
+}
+
 export default async function CategoriesPage() {
   const categories = await (prisma as any).category.findMany({
     where: { parentId: null },
     include: { children: { orderBy: { order: 'asc' } } },
     orderBy: { order: 'asc' }
-  })
+  }) as CategoryWithChildren[]
 
   return (
     <div className="w-full">
@@ -35,7 +40,7 @@ export default async function CategoriesPage() {
 
         <div className="bg-white rounded-lg shadow overflow-hidden">
           <div className="divide-y divide-gray-200">
-            {categories.map((category) => (
+            {categories.map((category: CategoryWithChildren) => (
               <div key={category.id} className="p-6">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-4">
@@ -75,7 +80,7 @@ export default async function CategoriesPage() {
                 </div>
                 {category.children.length > 0 && (
                   <div className="mt-4 ml-6 space-y-2">
-                    {category.children.map((child) => (
+                    {category.children.map((child: Category) => (
                       <div
                         key={child.id}
                         className="flex items-center justify-between p-3 bg-gray-50 rounded"
